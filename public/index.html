@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>UDUS Library Chatbot 🤖</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #e0e7ff;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      background-color: #1e3a8a;
+      padding: 15px 0;
+      text-align: center;
+    }
+
+    header img {
+      height: 70px;
+    }
+
+    header h1 {
+      color: #fff;
+      margin: 10px 0 0;
+      font-size: 1.6rem;
+      font-weight: 500;
+    }
+
+    #chat-container {
+      flex: 1;
+      width: 90%;
+      max-width: 800px;
+      margin: 20px auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #chat-box {
+      flex: 1;
+      padding: 25px;
+      overflow-y: auto;
+      background: #f9f9f9;
+    }
+
+    .message {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .user {
+      align-items: flex-end;
+    }
+
+    .bot {
+      align-items: flex-start;
+    }
+
+    .bubble {
+      padding: 14px 20px;
+      font-size: 1.1rem;
+      border-radius: 20px;
+      max-width: 80%;
+    }
+
+    .user .bubble {
+      background: #2563eb;
+      color: white;
+      border-bottom-right-radius: 0;
+    }
+
+    .bot .bubble {
+      background: #e5e7eb;
+      color: #111;
+      border-bottom-left-radius: 0;
+    }
+
+    .timestamp {
+      font-size: 0.75em;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    #typing {
+      font-style: italic;
+      color: #555;
+      padding: 0 25px 10px;
+      font-size: 0.95rem;
+    }
+
+    #form {
+      display: flex;
+      padding: 20px;
+      border-top: 1px solid #ddd;
+      background: #f3f4f6;
+    }
+
+    #message {
+      flex: 1;
+      padding: 14px;
+      font-size: 1.1rem;
+      border: 1px solid #bbb;
+      border-radius: 10px;
+    }
+
+    #send, #clear {
+      margin-left: 10px;
+      padding: 14px 18px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    #send {
+      background-color: #10b981;
+      color: white;
+    }
+
+    #clear {
+      background-color: #ef4444;
+      color: white;
+    }
+
+    footer {
+      background-color: #1e3a8a;
+      text-align: center;
+      color: white;
+      padding: 12px;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      #chat-container {
+        width: 100%;
+        height: 100vh;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <img src="udus-logo.png" alt="UDUS Logo" />
+    <h1>Usmanu Danfodiyo University Library Assistant</h1>
+  </header>
+
+  <!-- Chat container -->
+  <div id="chat-container">
+    <div id="chat-box"></div>
+    <div id="typing" style="display: none;">🤖 Typing...</div>
+    <form id="form">
+      <input type="text" id="message" placeholder="Type your message..." autocomplete="off" required />
+      <button type="submit" id="send">Send</button>
+      <button type="button" id="clear">Clear</button>
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    © 2025 Usmanu Danfodiyo University, Sokoto — Library Digital Assistant. Built by Aisha Lawal.
+  </footer>
+
+  <!-- Script -->
+  <script>
+    const form = document.getElementById('form');
+    const chatBox = document.getElementById('chat-box');
+    const messageInput = document.getElementById('message');
+    const typingIndicator = document.getElementById('typing');
+    const clearBtn = document.getElementById('clear');
+
+    const addMessage = (text, sender) => {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${sender}`;
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.innerText = text;
+
+      const time = document.createElement('div');
+      time.className = 'timestamp';
+      time.innerText = new Date().toLocaleTimeString();
+
+      messageDiv.appendChild(bubble);
+      messageDiv.appendChild(time);
+      chatBox.appendChild(messageDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const userMessage = messageInput.value.trim();
+      if (!userMessage) return;
+
+      addMessage(userMessage, 'user');
+      messageInput.value = '';
+      typingIndicator.style.display = 'block';
+
+      try {
+        const response = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: userMessage })
+        });
+        const data = await response.json();
+        typingIndicator.style.display = 'none';
+        addMessage(data.reply, 'bot');
+      } catch (err) {
+        typingIndicator.style.display = 'none';
+        addMessage("⚠️ Failed to connect to the bot.", 'bot');
+        console.error(err);
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      chatBox.innerHTML = '';
+    });
+  </script>
+</body>
+</html>
